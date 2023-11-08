@@ -374,6 +374,11 @@ local vampData = {
                 [1] = .589,
                 [2] = .226,
                 [3] = 1
+            },
+            [68] = { -- black dagger camp {.288,.494,140},
+                [1] = .288,
+                [2] = .494,
+                [3] = 1
             }
         }
     }
@@ -508,7 +513,7 @@ local function PinCallback()
     if data ~= nil then
         for _, pinData in ipairs(data) do
             if campRange < 1.0 then 
-                if math.abs(pinData[1]-x)<campRange and math.abs(pinData[2]-y)<campRange then
+                 if  ((pinData[1] - x)^2  +  (pinData[2] - y)^2)  <  (campRange^2) then -- circular shape
                     LMP:CreatePin(PIN, pinData, pinData[1], pinData[2])
                 end
             else
@@ -519,7 +524,7 @@ local function PinCallback()
 end
 
 local function RegisterEvents()
-    if savedVariables.pin.range < 100 then
+    if savedVariables.pin.range  <  100 then
 		WORLD_MAP_SCENE:RegisterCallback("StateChange", function(oldState, newState) 
             if newState==SCENE_SHOWING then -- successfully runs whenever opening map 
                 x,y = GetMapPlayerPosition("player")
