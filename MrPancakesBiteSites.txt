@@ -1,14 +1,16 @@
-## Title: Cyrodiil Vampires
+## Title: |cFE3F3FMrPancake's Bite Sites|r
 ## Description: Map pins for biteable NPCs in Cyrodiil.
 ## Author: @TheMrPancake
 ## APIVersion: 101040
 ## AddOnVersion: 1
 ## Version: 1.0
-## SavedVariables: CyrodiilVampires_SavedVariables
+## SavedVariables: MrPancakesBiteSites_SavedVariables
 ## DependsOn: LibAddonMenu-2.0 LibMapPins-1.0
 
 # This Add-on is not created by, affiliated with, or sponsored by, ZeniMax Media Inc. or its affiliates.
 # The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc. in the United States
 # and/or other countries. All rights reserved.
 
-CyrodiilVampires.lua
+# Full terms available here: https://account.elderscrollsonline.com/en-gb/add-on-terms
+
+MrPancakesBiteSites.lua
