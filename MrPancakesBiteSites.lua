@@ -7,13 +7,15 @@ local PIN = "MrPancakesBiteSitesPIN"
 local pinTextures = {
     [1] = "MrPancakesBiteSites/Icons/fangs_white.dds",
     [2] = "MrPancakesBiteSites/Icons/fangs_black.dds",
-    [3] = "MrPancakesBiteSites/Icons/imperial_camp.dds"
+    [3] = "esoui/art/icons/poi/poi_camp_complete.dds",
+    [4] = "esoui/art/icons/poi/poi_camp_incomplete.dds"
 }
 
 local pinTexturesList = {
     [1] = "White Fangs",
     [2] = "Black Fangs",
-    [3] = "Camp"
+    [3] = "White Camp",
+    [4] = "Black Camp"
 }
 
 local pinColor
@@ -29,7 +31,7 @@ local defaults = {
     pin = {
         type = 1,
         size = 25,
-        hex = ZO_SELECTED_TEXT:ToHex(),
+        hex = "ffffff",
         range = 10
     }
 }
@@ -379,6 +381,16 @@ local vampData = {
                 [1] = .288,
                 [2] = .494,
                 [3] = 1
+            },
+            [69] = { -- imperial camp {.445,.233,140},
+                [1] = .445,
+                [2] = .233,
+                [3] = 1
+            },
+            [70] = { -- tower {.195,.309,140},
+                [1] = .195,
+                [2] = .309,
+                [3] = 2
             }
         }
     }
@@ -390,21 +402,11 @@ local function MrPancakesBiteSites_GetLocalData(zone, subzone)
     end
 end
 
-local function MrPancakesBiteSites_SetLocalData(manifest, zone, subzone, data)
-    if type(zone) == "string" and type(subzone) == "string" and type(data) == "table" then
-        manifest[zone] = manifest[zone] or {}
-        manifest[zone][subzone] = manifest[zone][subzone] or {}
-        table.insert(manifest[zone][subzone], data)
-    end
-
-    return manifest
-end
-
 local function CreateSettingsMenu()
     local panelData = {
         type = "panel",
         name = "MrPancake's Bite Sites",
-        displayName = "|cFFAFAFMrPancake's Bite Sites|r",
+        displayName = "|cFE3F3FMRPANCAKE'S BITE SITES|r",
         author = "@TheMrPancake",
         version = T.version,
         registerForRefresh = true,
@@ -494,6 +496,7 @@ local function CreateSettingsMenu()
             LMP:SetLayoutKey(PIN, "range", value)
             LMP:RefreshPins(PIN)
             icon:SetDimensions(value, value)
+            RegisterEvents()
         end,
         default = defaults.pin.range
     }}
