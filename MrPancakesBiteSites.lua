@@ -5,17 +5,19 @@ local addonName = "MrPancakesBiteSites"
 local PIN = "MrPancakesBiteSitesPIN"
 
 local pinTextures = {
-    [1] = "MrPancakesBiteSites/Icons/fangs_white.dds",
-    [2] = "MrPancakesBiteSites/Icons/fangs_black.dds",
-    [3] = "esoui/art/icons/poi/poi_camp_complete.dds",
-    [4] = "esoui/art/icons/poi/poi_camp_incomplete.dds"
+    [1] = "MrPancakesBiteSites/Icons/fangs_white.dds", -- made by me
+    [2] = "MrPancakesBiteSites/Icons/fangs_black.dds", -- made by me
+    [3] = "esoui/art/armory/buildicons/buildicon_44.dds", -- this took me so long to find because it doesn't appear in \depot\eso.mnf but in \game\client\game.mnf. ugh
+    [4] = "esoui/art/icons/poi/poi_camp_complete.dds",
+    [5] = "esoui/art/icons/poi/poi_camp_incomplete.dds"
 }
 
 local pinTexturesList = {
     [1] = "White Fangs",
     [2] = "Black Fangs",
-    [3] = "White Camp",
-    [4] = "Black Camp"
+    [3] = "3D Fangs",
+    [4] = "White Camp",
+    [5] = "Black Camp"
 }
 
 local pinColor
@@ -32,7 +34,8 @@ local defaults = {
         type = 1,
         size = 25,
         hex = "ffffff",
-        range = 10
+        range = 10,
+        hide_at_stage_4 = false
     }
 }
 local savedVariables
@@ -396,7 +399,7 @@ local vampData = {
     }
 }
 
-local function MrPancakesBiteSites_GetLocalData(zone, subzone)
+local function GetLocalData(zone, subzone)
     if type(zone) == "string" and type(subzone) == "string" and vampData[zone] and vampData[zone][subzone] then
         return vampData[zone][subzone]
     end
@@ -454,7 +457,7 @@ local function CreateSettingsMenu()
     }, {
         type = "colorpicker",
         name = "Pin Colour",
-        tooltip = "Map pin colour.",
+        tooltip = "Map pin tint colour. Affects the white parts of the icon.",
         getFunc = function()
             return pinColor:UnpackRGBA()
         end,
@@ -467,7 +470,7 @@ local function CreateSettingsMenu()
     }, {
         type = "slider",
         name = "Pin Size",
-        tooltip = "Map pin size.",
+        tooltip = "Map pin display size.",
         min = 20,
         max = 70,
         step = 1,
@@ -495,10 +498,20 @@ local function CreateSettingsMenu()
             savedVariables.pin.range = value
             LMP:SetLayoutKey(PIN, "range", value)
             LMP:RefreshPins(PIN)
-            icon:SetDimensions(value, value)
-            RegisterEvents()
         end,
         default = defaults.pin.range
+    }, {
+        type = "checkbox",
+        name = "Hide Pins at Stage 4",
+        tooltip = "Hides pins when you are at stage 4 vampirism.",
+        getFunc = function()
+            return savedVariables.pin.hide_at_stage_4
+        end,
+        setFunc = function(value)
+            savedVariables.pin.hide_at_stage_4 = value
+            LMP:RefreshPins(PIN)
+        end,
+        default = defaults.pin.hide_at_stage_4
     }}
     LAM:RegisterOptionControls(T.name, optionsTable)
 end
@@ -508,18 +521,29 @@ local function PinCallback()
     if not IsPlayerActivated() then return end
 
     local zone, subzone = LMP:GetZoneAndSubzone()
-    local data = MrPancakesBiteSites_GetLocalData(zone, subzone)
+    local data = GetLocalData(zone, subzone)
 
     x,y = GetMapPlayerPosition("player")
     local campRange = savedVariables.pin.range / 100.0
 
+    local numBuffs = GetNumBuffs("player")
+    local is_stage_4 = false
+
+    if numBuffs > 0 then
+        for i = 1, numBuffs do
+
+            local _, _, _, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
+            if abilityId == 135402 then
+                is_stage_4 = true
+            end
+        end
+    end
+
+    if is_stage_4 and savedVariables.pin.hide_at_stage_4 then return end
+
     if data ~= nil then
         for _, pinData in ipairs(data) do
-            if campRange < 1.0 then 
-                 if  ((pinData[1] - x)^2  +  (pinData[2] - y)^2)  <  (campRange^2) then -- circular shape
-                    LMP:CreatePin(PIN, pinData, pinData[1], pinData[2])
-                end
-            else
+            if ((pinData[1] - x)^2  +  (pinData[2] - y)^2)  <  (campRange^2) then -- circular shape
                 LMP:CreatePin(PIN, pinData, pinData[1], pinData[2])
             end
         end
@@ -527,16 +551,13 @@ local function PinCallback()
 end
 
 local function RegisterEvents()
-    if savedVariables.pin.range  <  100 then
-		WORLD_MAP_SCENE:RegisterCallback("StateChange", function(oldState, newState) 
-            if newState==SCENE_SHOWING then -- successfully runs whenever opening map 
-                x,y = GetMapPlayerPosition("player")
-                LMP:RefreshPins(PIN)
-            end
-        end)
-	else
-		WORLD_MAP_SCENE:UnregisterCallback("StateChange")
-	end
+    WORLD_MAP_SCENE:UnregisterCallback("StateChange")
+	WORLD_MAP_SCENE:RegisterCallback("StateChange", function(oldState, newState) 
+        if newState==SCENE_SHOWING then -- successfully runs whenever opening map 
+            x,y = GetMapPlayerPosition("player")
+            LMP:RefreshPins(PIN)
+        end
+    end)
 end
 
 local function Init(event, name)
