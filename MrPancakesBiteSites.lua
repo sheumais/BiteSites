@@ -419,6 +419,26 @@ local vampData = {
                 [1] = .709,
                 [2] = .123,
                 [3] = 1
+            },
+            [76] = { -- imperial camp {.147,.367,0},
+                [1] = .147,
+                [2] = .367,
+                [3] = 1
+            },
+            [77] = { -- imperial camp {.569,.69,0},
+                [1] = .569,
+                [2] = .69,
+                [3] = 1
+            },
+            [78] = { -- imperial camp {.668,.496,0},
+                [1] = .668,
+                [2] = .496,
+                [3] = 1
+            },
+            [79] = { -- imperial camp {.476,.743,68},
+                [1] = .476,
+                [2] = .743,
+                [3] = 1
             }
         }
     }
@@ -558,7 +578,7 @@ local function PinCallback()
         for i = 1, numBuffs do
 
             local _, _, _, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
-            if abilityId == 135402 then
+            if abilityId == 135402 then -- stage 4 vampirism id
                 is_stage_4 = true
             end
         end
