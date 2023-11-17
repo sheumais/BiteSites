@@ -1,7 +1,16 @@
+-- Much of this addon's structure is based on the PvDoor addon by skineh
+-- You can download it here: https://www.esoui.com/downloads/info3098-PvDoor.html
+
+local MPBS = {
+    name = "MrPancakesBiteSites",
+    version = "1.0",
+    author = "@TheMrPancake"
+}
+
 local LAM = LibAddonMenu2
 local LMP = LibMapPins
 
-local addonName = "MrPancakesBiteSites"
+local addonName = MPBS.name
 local PIN = "MrPancakesBiteSitesPIN"
 
 local pinTextures = {
@@ -23,16 +32,9 @@ local pinTexturesList = {
 local pinColor
 local savedVariables
 local x,y
-
-MrPancakesBiteSites = ZO_Object:Subclass()
-local T = MrPancakesBiteSites
-T.name = "MrPancakesBiteSites"
-T.version = "1.0"
-T.debug = false
-T.UI = {}
-
 local defaults = {
     pin = {
+        enabled = 1,
         type = 1,
         size = 25,
         level = 60,
@@ -43,7 +45,7 @@ local defaults = {
     }
 }
 
-local biteSiteData = {
+biteSiteData = {
 
     ["cyrodiil"] = {
         ["ava_whole"] = {
@@ -451,13 +453,13 @@ local function CreateSettingsMenu()
         type = "panel",
         name = "MrPancake's Bite Sites",
         displayName = "|cFE3F3FMRPANCAKE'S BITE SITES|r",
-        author = "@TheMrPancake",
-        version = T.version,
+        author = MPBS.author,
+        version = MPBS.version,
         registerForRefresh = true,
         registerForDefaults = true
     }
 
-    LAM:RegisterAddonPanel(T.name, panelData)
+    LAM:RegisterAddonPanel(MPBS.name, panelData)
 
 	local CreateIcons, icon
 	CreateIcons = function(panel)
@@ -470,17 +472,25 @@ local function CreateSettingsMenu()
 		end
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
-
-    local optionsTable = {{ 
-        type = "description",
-        title = nil,
-        text = "This addon updates pin icons upon opening the map.",
-        width = "full"
-    }, {
-        type = "header",
-        name = "SETTINGS",
-        width = "full"
-    }, {
+    
+    local optionsTable = {}
+    optionsTable[#optionsTable+1] = {
+        type = "checkbox",
+        name = "Enable Addon",
+        tooltip = "Visibility toggle.",
+        getFunc = function()
+            return savedVariables.pin.enabled
+        end,
+        setFunc = function(value)
+            savedVariables.pin.enabled = value
+            LMP:SetEnabled(PIN, value)
+        end,
+        default = defaults.pin.enabled
+    }
+    optionsTable[#optionsTable+1] = {
+        type = "divider",
+    }
+    optionsTable[#optionsTable+1] = {
         type = "dropdown",
         name = "Pin Icon",
         tooltip = "Map pin icon.",
@@ -500,7 +510,8 @@ local function CreateSettingsMenu()
             end
         end,
         default = pinTexturesList[defaults.pin.type]
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
         type = "colorpicker",
         name = "Pin Colour",
         tooltip = "Map pin tint colour. Affects the white parts of the icon.",
@@ -513,7 +524,11 @@ local function CreateSettingsMenu()
             LMP:RefreshPins()
         end,
         default = ZO_SELECTED_TEXT
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
+        type = "divider",
+    }
+    optionsTable[#optionsTable+1] = {
         type = "slider",
         name = "Pin Size",
         tooltip = "Map pin display size.",
@@ -530,7 +545,8 @@ local function CreateSettingsMenu()
             icon:SetDimensions(value, value)
         end,
         default = defaults.pin.size
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
         type = "slider",
         name = "Pin Level",
         tooltip = "Map pin display level.",
@@ -546,7 +562,8 @@ local function CreateSettingsMenu()
             LMP:RefreshPins(PIN)
         end,
         default = defaults.pin.level
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
         type = "slider",
         name = "Pin Display Range",
         tooltip = "Display range of map pins. Higher values show more pins exponentially.",
@@ -562,7 +579,11 @@ local function CreateSettingsMenu()
             LMP:RefreshPins(PIN)
         end,
         default = defaults.pin.range
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
+        type = "divider",
+    }
+    optionsTable[#optionsTable+1] = {
         type = "checkbox",
         name = "Hide Pins at Stage 3",
         tooltip = "Hides pins when you are at stage 3 vampirism.",
@@ -574,7 +595,8 @@ local function CreateSettingsMenu()
             LMP:RefreshPins(PIN)
         end,
         default = defaults.pin.hide_at_stage_3
-    }, {
+    }
+    optionsTable[#optionsTable+1] = {
         type = "checkbox",
         name = "Hide Pins at Stage 4",
         tooltip = "Hides pins when you are at stage 4 vampirism.",
@@ -586,12 +608,11 @@ local function CreateSettingsMenu()
             LMP:RefreshPins(PIN)
         end,
         default = defaults.pin.hide_at_stage_4
-    }, {
-        type = "header",
-        name = "",
-        width = "full"
-    }}
-    LAM:RegisterOptionControls(T.name, optionsTable)
+    }
+    optionsTable[#optionsTable+1] = {
+        type = "divider",
+    }
+    LAM:RegisterOptionControls(MPBS.name, optionsTable)
 end
 
 local function GetLocalData(zone, subzone)
