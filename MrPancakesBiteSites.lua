@@ -21,6 +21,8 @@ local pinTexturesList = {
 }
 
 local pinColor
+local savedVariables
+local x,y
 
 MrPancakesBiteSites = ZO_Object:Subclass()
 local T = MrPancakesBiteSites
@@ -33,15 +35,15 @@ local defaults = {
     pin = {
         type = 1,
         size = 25,
+        level = 60,
         hex = "ffffff",
         range = 10,
-        hide_at_stage_4 = false
+        hide_at_stage_4 = true,
+        hide_at_stage_3 = false
     }
 }
-local savedVariables
-local x,y
 
-local vampData = {
+local biteSiteData = {
 
     ["cyrodiil"] = {
         ["ava_whole"] = {
@@ -444,12 +446,6 @@ local vampData = {
     }
 }
 
-local function GetLocalData(zone, subzone)
-    if type(zone) == "string" and type(subzone) == "string" and vampData[zone] and vampData[zone][subzone] then
-        return vampData[zone][subzone]
-    end
-end
-
 local function CreateSettingsMenu()
     local panelData = {
         type = "panel",
@@ -466,8 +462,8 @@ local function CreateSettingsMenu()
 	local CreateIcons, icon
 	CreateIcons = function(panel)
 		if panel == MrPancakesBiteSites then
-			icon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[2], CT_TEXTURE)
-			icon:SetAnchor(RIGHT, panel.controlsToRefresh[2].combobox, LEFT, -10, 0)
+			icon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[3], CT_TEXTURE) -- controlsToRefresh[3] == third entry in the optionsTable list (i.e. Pin Icon)
+			icon:SetAnchor(RIGHT, panel.controlsToRefresh[3].combobox, LEFT, -10, 0)
 			icon:SetTexture(pinTextures[savedVariables.pin.type])
 			icon:SetDimensions(savedVariables.pin.size, savedVariables.pin.size)
 			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
@@ -475,9 +471,14 @@ local function CreateSettingsMenu()
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 
-    local optionsTable = {{
+    local optionsTable = {{ 
+        type = "description",
+        title = nil,
+        text = "This addon updates pin icons upon opening the map.",
+        width = "full"
+    }, {
         type = "header",
-        name = "PIN OPTIONS",
+        name = "SETTINGS",
         width = "full"
     }, {
         type = "dropdown",
@@ -531,8 +532,24 @@ local function CreateSettingsMenu()
         default = defaults.pin.size
     }, {
         type = "slider",
+        name = "Pin Level",
+        tooltip = "Map pin display level.",
+        min = 10,
+        max = 150,
+        step = 5,
+        getFunc = function()
+            return savedVariables.pin.level
+        end,
+        setFunc = function(value)
+            savedVariables.pin.level = value
+            LMP:SetLayoutKey(PIN, "level", value)
+            LMP:RefreshPins(PIN)
+        end,
+        default = defaults.pin.level
+    }, {
+        type = "slider",
         name = "Pin Display Range",
-        tooltip = "Updates pin icons upon opening map. Infrequent opening of map will lead to pin display issues on minimaps.",
+        tooltip = "Display range of map pins. Higher values show more pins exponentially.",
         min = 5,
         max = 100,
         step = 1,
@@ -547,6 +564,18 @@ local function CreateSettingsMenu()
         default = defaults.pin.range
     }, {
         type = "checkbox",
+        name = "Hide Pins at Stage 3",
+        tooltip = "Hides pins when you are at stage 3 vampirism.",
+        getFunc = function()
+            return savedVariables.pin.hide_at_stage_3
+        end,
+        setFunc = function(value)
+            savedVariables.pin.hide_at_stage_3 = value
+            LMP:RefreshPins(PIN)
+        end,
+        default = defaults.pin.hide_at_stage_3
+    }, {
+        type = "checkbox",
         name = "Hide Pins at Stage 4",
         tooltip = "Hides pins when you are at stage 4 vampirism.",
         getFunc = function()
@@ -557,8 +586,18 @@ local function CreateSettingsMenu()
             LMP:RefreshPins(PIN)
         end,
         default = defaults.pin.hide_at_stage_4
+    }, {
+        type = "header",
+        name = "",
+        width = "full"
     }}
     LAM:RegisterOptionControls(T.name, optionsTable)
+end
+
+local function GetLocalData(zone, subzone)
+    if type(zone) == "string" and type(subzone) == "string" and biteSiteData[zone] and biteSiteData[zone][subzone] then
+        return biteSiteData[zone][subzone]
+    end
 end
 
 local function PinCallback()
@@ -569,26 +608,30 @@ local function PinCallback()
     local data = GetLocalData(zone, subzone)
 
     x,y = GetMapPlayerPosition("player")
-    local campRange = savedVariables.pin.range / 100.0
+    local biteSiteRange = savedVariables.pin.range / 100.0
 
     local numBuffs = GetNumBuffs("player")
-    local is_stage_4 = false
+    local IS_STAGE_4 = false
+    local IS_STAGE_3 = false
 
     if numBuffs > 0 then
         for i = 1, numBuffs do
-
             local _, _, _, _, _, _, _, _, _, _, abilityId = GetUnitBuffInfo('player', i)
             if abilityId == 135402 then -- stage 4 vampirism id
-                is_stage_4 = true
+                IS_STAGE_4 = true
+            end
+            if abilityId == 135400 then -- stage 3 vampirism id
+                IS_STAGE_3 = true
             end
         end
     end
 
-    if is_stage_4 and savedVariables.pin.hide_at_stage_4 then return end
+    if IS_STAGE_4 and savedVariables.pin.hide_at_stage_4 then return end
+    if IS_STAGE_3 and savedVariables.pin.hide_at_stage_3 then return end
 
     if data ~= nil then
         for _, pinData in ipairs(data) do
-            if ((pinData[1] - x)^2  +  (pinData[2] - y)^2)  <  (campRange^2) then -- circular shape
+            if ((pinData[1] - x)^2  +  (pinData[2] - y)^2)  <  (biteSiteRange^2) then -- circular shape
                 LMP:CreatePin(PIN, pinData, pinData[1], pinData[2])
             end
         end
@@ -611,7 +654,7 @@ local function Init(event, name)
 
     pinColor = ZO_ColorDef:New(savedVariables.pin.hex)
     local layout = {
-        level = 60,
+        level = savedVariables.pin.level,
         texture = pinTextures[savedVariables.pin.type],
         size = savedVariables.pin.size,
         tint = pinColor
