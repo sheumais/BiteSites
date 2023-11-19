@@ -21,21 +21,13 @@ local pinTextures = {
     [5] = "esoui/art/icons/poi/poi_camp_incomplete.dds"
 }
 
-local pinTexturesList = {
-    [1] = "White Fangs",
-    [2] = "Black Fangs",
-    [3] = "3D Fangs",
-    [4] = "White Camp",
-    [5] = "Black Camp"
-}
-
 local pinColor
 local savedVariables
 local x,y
 local defaults = {
     pin = {
         enabled = 1,
-        type = 1,
+        type = "MrPancakesBiteSites/Icons/fangs_white.dds",
         size = 25,
         level = 60,
         hex = "ffffff",
@@ -451,8 +443,8 @@ biteSiteData = {
 local function CreateSettingsMenu()
     local panelData = {
         type = "panel",
-        name = "MrPancake's Bite Sites",
-        displayName = "|cFE3F3FMRPANCAKE'S BITE SITES|r",
+        name = "MrPancake's Bite Sites", -- sidebar name
+        displayName = "|cFE3F3FMRPANCAKE'S BITE SITES|r", -- top name
         author = MPBS.author,
         version = MPBS.version,
         registerForRefresh = true,
@@ -460,157 +452,18 @@ local function CreateSettingsMenu()
     }
 
     LAM:RegisterAddonPanel(MPBS.name, panelData)
-
-	local CreateIcons, icon
-	CreateIcons = function(panel)
-		if panel == MrPancakesBiteSites then
-			icon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[3], CT_TEXTURE) -- controlsToRefresh[3] == third entry in the optionsTable list (i.e. Pin Icon)
-			icon:SetAnchor(RIGHT, panel.controlsToRefresh[3].combobox, LEFT, -10, 0)
-			icon:SetTexture(pinTextures[savedVariables.pin.type])
-			icon:SetDimensions(savedVariables.pin.size, savedVariables.pin.size)
-			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
-		end
-	end
-	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
-    
-    local optionsTable = {}
-    optionsTable[#optionsTable+1] = {
-        type = "checkbox",
-        name = "Enable Addon",
-        tooltip = "Visibility toggle.",
-        getFunc = function()
-            return savedVariables.pin.enabled
-        end,
-        setFunc = function(value)
-            savedVariables.pin.enabled = value
-            LMP:SetEnabled(PIN, value)
-        end,
-        default = defaults.pin.enabled
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "divider",
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "dropdown",
-        name = "Pin Icon",
-        tooltip = "Map pin icon.",
-        choices = pinTexturesList,
-        getFunc = function()
-            return pinTexturesList[savedVariables.pin.type]
-        end,
-        setFunc = function(selected)
-            for index, name in ipairs(pinTexturesList) do
-                if name == selected then
-                    savedVariables.pin.type = index
-                    LMP:SetLayoutKey(PIN, "texture", pinTextures[index])
-                    LMP:RefreshPins(PIN)
-                    icon:SetTexture(pinTextures[index])
-                    break
-                end
-            end
-        end,
-        default = pinTexturesList[defaults.pin.type]
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "colorpicker",
-        name = "Pin Colour",
-        tooltip = "Map pin tint colour. Affects the white parts of the icon.",
-        getFunc = function()
-            return pinColor:UnpackRGBA()
-        end,
-        setFunc = function(...)
-            pinColor:SetRGBA(...)
-            savedVariables.pin.hex = pinColor:ToHex()
-            LMP:RefreshPins()
-        end,
-        default = ZO_SELECTED_TEXT
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "divider",
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "slider",
-        name = "Pin Size",
-        tooltip = "Map pin display size.",
-        min = 20,
-        max = 70,
-        step = 1,
-        getFunc = function()
-            return savedVariables.pin.size
-        end,
-        setFunc = function(value)
-            savedVariables.pin.size = value
-            LMP:SetLayoutKey(PIN, "size", value)
-            LMP:RefreshPins(PIN)
-            icon:SetDimensions(value, value)
-        end,
-        default = defaults.pin.size
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "slider",
-        name = "Pin Level",
-        tooltip = "Map pin display level.",
-        min = 10,
-        max = 150,
-        step = 5,
-        getFunc = function()
-            return savedVariables.pin.level
-        end,
-        setFunc = function(value)
-            savedVariables.pin.level = value
-            LMP:SetLayoutKey(PIN, "level", value)
-            LMP:RefreshPins(PIN)
-        end,
-        default = defaults.pin.level
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "slider",
-        name = "Pin Display Range",
-        tooltip = "Display range of map pins. Higher values show more pins exponentially.",
-        min = 5,
-        max = 100,
-        step = 1,
-        getFunc = function()
-            return savedVariables.pin.range
-        end,
-        setFunc = function(value)
-            savedVariables.pin.range = value
-            LMP:SetLayoutKey(PIN, "range", value)
-            LMP:RefreshPins(PIN)
-        end,
-        default = defaults.pin.range
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "divider",
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "checkbox",
-        name = "Hide Pins at Stage 3",
-        tooltip = "Hides pins when you are at stage 3 vampirism.",
-        getFunc = function()
-            return savedVariables.pin.hide_at_stage_3
-        end,
-        setFunc = function(value)
-            savedVariables.pin.hide_at_stage_3 = value
-            LMP:RefreshPins(PIN)
-        end,
-        default = defaults.pin.hide_at_stage_3
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "checkbox",
-        name = "Hide Pins at Stage 4",
-        tooltip = "Hides pins when you are at stage 4 vampirism.",
-        getFunc = function()
-            return savedVariables.pin.hide_at_stage_4
-        end,
-        setFunc = function(value)
-            savedVariables.pin.hide_at_stage_4 = value
-            LMP:RefreshPins(PIN)
-        end,
-        default = defaults.pin.hide_at_stage_4
-    }
-    optionsTable[#optionsTable+1] = {
-        type = "divider",
+    local optionsTable = {
+        { type = "checkbox", name = "Enable Addon", tooltip = "Visibility toggle.", getFunc = function() return savedVariables.pin.enabled end, setFunc = function(value) savedVariables.pin.enabled = value LMP:SetEnabled(PIN, value) end, default = defaults.pin.enabled },
+        { type = "divider"},
+        { type = "iconpicker", name = "Pin Icon", tooltip = "Map pin icon selector.", maxColumns = 7, choices = pinTextures, visibleRows = 2, getFunc = function() return savedVariables.pin.type end, setFunc = function(value) savedVariables.pin.type = value LMP:SetLayoutKey(PIN, "texture", value) LMP:RefreshPins(PIN) end, default = defaults.pin.type },
+        { type = "colorpicker", name = "Pin Colour", tooltip = "Map pin tint colour. Affects the white parts of the icon.", getFunc = function() return pinColor:UnpackRGBA() end, setFunc = function(...) pinColor:SetRGBA(...) savedVariables.pin.hex = pinColor:ToHex() LMP:RefreshPins() end, default = ZO_SELECTED_TEXT},
+        { type = "divider"},
+        { type = "slider", name = "Pin Size", tooltip = "Map pin display size.", min = 20, max = 70, step = 1, getFunc = function() return savedVariables.pin.size end, setFunc = function(value) savedVariables.pin.size = value LMP:SetLayoutKey(PIN, "size", value) LMP:RefreshPins(PIN) end, default = defaults.pin.size },
+        { type = "slider", name = "Pin Level", tooltip = "Map pin display level.", min = 10, max = 150, step = 5, getFunc = function() return savedVariables.pin.level end, setFunc = function(value) savedVariables.pin.level = value LMP:SetLayoutKey(PIN, "level", value) LMP:RefreshPins(PIN) end, default = defaults.pin.level },
+        { type = "slider", name = "Pin Display Range", tooltip = "Display range of map pins. Higher values show more pins exponentially.", min = 5, max = 100, step = 1, getFunc = function() return savedVariables.pin.range end, setFunc = function(value) savedVariables.pin.range = value LMP:SetLayoutKey(PIN, "range", value) LMP:RefreshPins(PIN) end, default = defaults.pin.range },
+        { type = "divider"},
+        { type = "checkbox", name = "Hide Pins at Stage 3", tooltip = "Hides pins when you are at stage 3 vampirism.", getFunc = function() return savedVariables.pin.hide_at_stage_3 end, setFunc = function(value) savedVariables.pin.hide_at_stage_3 = value LMP:RefreshPins(PIN) end, default = defaults.pin.hide_at_stage_3 },
+        { type = "checkbox", name = "Hide Pins at Stage 4", tooltip = "Hides pins when you are at stage 4 vampirism.", getFunc = function() return savedVariables.pin.hide_at_stage_4 end, setFunc = function(value) savedVariables.pin.hide_at_stage_4 = value LMP:RefreshPins(PIN) end, default = defaults.pin.hide_at_stage_4 },
     }
     LAM:RegisterOptionControls(MPBS.name, optionsTable)
 end
