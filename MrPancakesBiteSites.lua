@@ -529,7 +529,7 @@ local function Init(event, name)
     pinColor = ZO_ColorDef:New(savedVariables.pin.hex)
     local layout = {
         level = savedVariables.pin.level,
-        texture = pinTextures[savedVariables.pin.type],
+        texture = savedVariables.pin.type,
         size = savedVariables.pin.size,
         tint = pinColor
     }
