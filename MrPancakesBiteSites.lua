@@ -1,6 +1,3 @@
--- Much of this addon's structure is based on the PvDoor addon by skineh
--- You can download it here: https://www.esoui.com/downloads/info3098-PvDoor.html
-
 local MPBS = {
     name = "MrPancakesBiteSites",
     version = "1.0",
@@ -16,7 +13,7 @@ local PIN = "MrPancakesBiteSitesPIN"
 local pinTextures = {
     [1] = "MrPancakesBiteSites/Icons/fangs_white.dds", -- made by me
     [2] = "MrPancakesBiteSites/Icons/fangs_black.dds", -- made by me
-    [3] = "esoui/art/armory/buildicons/buildicon_44.dds", -- this took me so long to find because it doesn't appear in \depot\eso.mnf but in \game\client\game.mnf. ugh
+    [3] = "esoui/art/armory/buildicons/buildicon_44.dds",
     [4] = "esoui/art/icons/poi/poi_camp_complete.dds",
     [5] = "esoui/art/icons/poi/poi_camp_incomplete.dds"
 }
@@ -26,7 +23,7 @@ local savedVariables
 local x,y
 local defaults = {
     pin = {
-        enabled = 1,
+        enabled = true,
         type = "MrPancakesBiteSites/Icons/fangs_white.dds",
         size = 25,
         level = 60,
@@ -450,6 +447,11 @@ biteSiteData = {
                 [1] = .442,
                 [2] = .673,
                 [3] = 1
+            },
+            [83] = { -- black dagger camp {.758,.347,56},
+                [1] = .758,
+                [2] = .347,
+                [3] = 1
             }
         }
     }
@@ -539,7 +541,7 @@ end
 
 local function Init(event, name)
     if name ~= addonName then return end
-    savedVariables = ZO_SavedVars:NewAccountWide("MrPancakesBiteSites_SavedVariables", 1, nil, defaults)
+    savedVariables = ZO_SavedVars:NewCharacterNameSettings("MrPancakesBiteSites_SavedVariables", 1, nil, defaults)
 
     pinColor = ZO_ColorDef:New(savedVariables.pin.hex)
     local layout = {

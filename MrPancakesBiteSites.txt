@@ -1,7 +1,7 @@
 ## Title: |cFE3F3FMrPancake's Bite Sites|r
 ## Description: Map pins for biteable NPCs in Cyrodiil.
 ## Author: TheMrPancake
-## APIVersion: 101040
+## APIVersion: 101041
 ## AddOnVersion: 1
 ## Version: 1.0
 ## SavedVariables: MrPancakesBiteSites_SavedVariables
